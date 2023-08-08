@@ -27,27 +27,29 @@ class Particle:
             self.velocidade[0] *= -1
         if (self.posicao[1] - self.raio <= 0) or (self.posicao[1] + self.raio >= height):
             self.velocidade[1] *= -1
-        
-    #def distancia_particulas(self, outra_particula):
-    #    return np.sqrt((self.posicao[0] - outra_particula.posicao[0])**2 + (self.posicao[1] - outra_particula.posicao[1])**2)
-
-    def colisao_particulas(self, outra_particula):
-        lamb = self.massa/outra_particula.massa
-        beta = outra_particula.massa/self.massa
-        vel1_init = self.velocidade.copy()
-        vel2_init = outra_particula.velocidade.copy()
-        if np.sqrt((self.posicao[0] - outra_particula.posicao[0])**2 + (self.posicao[1] - outra_particula.posicao[1])**2) <= (self.raio + outra_particula.raio):
-            self.velocidade = (2/(1+lamb))*vel2_init - ((1-lamb)/(1+lamb))*vel1_init
-            outra_particula.velocidade = (2/(1+beta))*vel1_init - ((1-beta)/(1+beta))*vel2_init
 
     def movimento(self):
-        self.posicao += self.velocidade
+        self.posicao = (self.posicao + self.velocidade).astype(int)
 
     def desenho(self):
         pygame.draw.circle(window, self.cor, (int(self.posicao[0]), int(self.posicao[1])), self.raio)
 
+def distancia_particulas(p1, p2):
+    return np.sqrt((p1.posicao[0] - p2.posicao[0])**2 + (p1.posicao[1] - p2.posicao[1])**2)
+
+def velocidade_relativa(p1, p2):
+    return np.sqrt((p1.velocidade[0] - p2.velocidade[0])**2 + (p1.velocidade[1] - p2.velocidade[1])**2)
+
+def colisao_particulas(p1, p2):
+    lamb = p1.massa/p2.massa
+    beta = p2.massa/p1.massa
+    if distancia_particulas(p1, p2) <= (p1.raio + p2.raio):
+        if velocidade_relativa(p1, p2) > 0:
+            p1.velocidade, p2.velocidade = (2/(1+lamb))*p2.velocidade - ((1-lamb)/(1+lamb))*p1.velocidade, (2/(1+beta))*p1.velocidade - ((1-beta)/(1+beta))*p2.velocidade
+            #p1.velocidade, p2.velocidade = p1.velocidade.astype(np.int32), p2.velocidade.astype(np.int32)
+
 # Criando as partículas
-particula_1 = Particle(width // 3, height - 100 // 2, 10)
+particula_1 = Particle(width // 3, height - 100 // 2, 80)
 particula_2 = Particle(2 * width // 3, height // 2, 10)
 
 # Rodando a simulação
@@ -72,7 +74,7 @@ while sim:
     particula_1.colisao_parede()
     particula_2.colisao_parede()
 
-    particula_1.colisao_particulas(particula_2)
+    colisao_particulas(particula_1, particula_2)
 
     pygame.display.update()
     c.tick(60)
