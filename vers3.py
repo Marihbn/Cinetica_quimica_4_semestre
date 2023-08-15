@@ -56,28 +56,11 @@ def main():
     particles = []
     num_particles = 100
 
-    #for _ in range(num_particles):
-     #   particle = Particle(np.random.randint(0, width), np.random.randint(0, height), 50)
-      #  particles.append(particle)
-
-    #for _ in range(num_particles):
-     #   radius = np.random.randint(5, 20)  # Defina o intervalo de tamanhos desejados
-      #  particle = Particle(np.random.randint(0, width), np.random.randint(0, height), radius)
-       # particles.append(particle)
-
     sizes = [5, 10]  # Lista de tamanhos possíveis
     for _ in range(num_particles):
         radius = np.random.choice(sizes)  # Escolhe um tamanho da lista
         particle = Particle(np.random.randint(0, width), np.random.randint(0, height), radius)
         particles.append(particle)
-
-    #sizes_and_colors = [
-    #(5, (0, 0, 255)),   # Tamanho 10, cor azul
-    #(10, (255, 0, 0)),   # Tamanho 15, cor vermelha
-    #(20, (0, 255, 0)),   # Tamanho 20, cor verde
-    # Adicione mais pares de tamanho e cor conforme necessário
-#]
-
 
 
     simulating = True
