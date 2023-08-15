@@ -19,7 +19,7 @@ class Particle:
         self.posicao = np.array([x, y])
         self.raio = raio
         self.cor = blue
-        self.velocidade = np.array([5, 6])
+        self.velocidade = np.array([50, 50])
         self.massa = raio**2
 
     def colisao_parede(self):
@@ -49,7 +49,7 @@ def colisao_particulas(p1, p2):
             #p1.velocidade, p2.velocidade = p1.velocidade.astype(np.int32), p2.velocidade.astype(np.int32)
 
 # Criando as partículas
-particula_1 = Particle(width // 3, height - 100 // 2, 80)
+particula_1 = Particle(width // 3, height - 100 // 2, 10)
 particula_2 = Particle(2 * width // 3, height // 2, 10)
 
 # Rodando a simulação
