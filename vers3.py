@@ -18,7 +18,7 @@ class Particle:
         self.position = np.array([x, y])
         self.radius = radius
         self.color = blue
-        self.velocity = np.array([2, 1])
+        self.velocity = np.array([1, 2])
         self.mass = radius**2
 
     def colisao_parede(self):
@@ -47,25 +47,25 @@ def vector_distance(p1, p2):
     return p2.position - p1.position
 
 def collide_particles(p1, p2):
-    lamb = p1.mass / p2.mass
-    beta = p2.mass / p1.mass
     if distance(p1, p2) <= (p1.radius + p2.radius):
-        v_rel = relative_speed(p1, p2)
-        s_rel = vector_distance(p1, p2)
-        if np.dot(v_rel, s_rel) < 0:
-            new_velocity_1 = (2 / (1 + lamb)) * p2.velocity - ((1 - lamb) / (1 + lamb)) * p1.velocity
-            new_velocity_2 = (2 / (1 + beta)) * p1.velocity - ((1 - beta) / (1 + beta)) * p2.velocity
-            p1.velocity, p2.velocity = new_velocity_1, new_velocity_2
+        new_velocity_1 = p1.velocity - (((2*p2.mass)/(p1.mass + p2.mass))*np.dot((p1.velocity - p2.velocity), (p1.position - p2.position))/((p1.radius + p2.radius)**2))*(p1.position - p2.position)
+        new_velocity_2 = p2.velocity - (((2*p1.mass)/(p2.mass + p1.mass))*np.dot((p2.velocity - p1.velocity), (p2.position - p1.position))/((p2.radius + p1.radius)**2))*(p2.position - p1.position)
+        p1.velocity, p2.velocity = new_velocity_1, new_velocity_2
 
 def main():
     pygame.init()
     window = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Simulação de Colisão de Partículas")
 
+    #radius1 = 20
+    #radius2 = 20
+    #particle1 = Particle(2*radius1, (height/2) + (radius1/2), 5, 0, radius1)
+    #particle2 = Particle(width - 2*radius2, (height/2) - (radius2/2), -5, 0, radius2)
+    #particles = [particle1, particle2]
     particles = []
     num_particles = 50
 
-    sizes = [10]  # Lista de tamanhos possíveis
+    sizes = [8, 10]  # Lista de tamanhos possíveis
     for _ in range(num_particles):
         radius = np.random.choice(sizes)  # Escolhe um tamanho da lista
         particle = Particle(np.random.randint(0, width), np.random.randint(0, height), radius)
@@ -92,7 +92,7 @@ def main():
                 collide_particles(particles[i], particles[j])
 
         pygame.display.update()
-        clock.tick(60)
+        clock.tick(10000)
 
     pygame.quit()
 
