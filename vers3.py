@@ -1,16 +1,11 @@
 import pygame
 import numpy as np
 
-pygame.init()
-
-# Simulação da caixa por meio de uma janela
-width, height = 600, 600
-window = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Simulação de Colisão de Partículas")
-
 # Cores do fundo e partículas
 black = (0, 0, 0)
 blue = (0, 0, 255)
+
+width, height = 600, 600
 
 # Classe para representar as partículas
 class Particle:
@@ -31,11 +26,11 @@ class Particle:
         if (self.position[1] + self.radius >= height):
             self.velocity[1] = -1*np.abs(self.velocity[1])
 
-    def move(self):
-        self.position = (self.position + self.velocity).astype(int)
+    def move(self, dt):
+        self.position = (self.position + self.velocity*dt).astype(float)
 
     def draw(self, surface):
-        pygame.draw.circle(surface, self.color, (int(self.position[0]), int(self.position[1])), self.radius)
+        pygame.draw.circle(surface, self.color, (float(self.position[0]), float(self.position[1])), self.radius)
 
 def distance(p1, p2):
     return np.sqrt((p1.position[0] - p2.position[0])**2 + (p1.position[1] - p2.position[1])**2)
@@ -76,6 +71,7 @@ def main():
     clock = pygame.time.Clock()
 
     while simulating:
+        dt = clock.get_time()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 simulating = False
@@ -83,7 +79,7 @@ def main():
         window.fill(black)
 
         for particle in particles:
-            particle.move()
+            particle.move(dt)
             particle.draw(window)
             particle.colisao_parede()
 
