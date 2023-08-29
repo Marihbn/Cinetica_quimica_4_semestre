@@ -17,7 +17,7 @@ def velocidade_relativa(p1, p2):
 
 def colisao_particulas(p1, p2):
     d = distancia_euclidiana(p1, p2)
-    if d < (p1.raio + p2.raio):
+    if d <= (p1.raio + p2.raio):
         if np.dot(velocidade_relativa(p1, p2), distancia(p1, p2)) < 0:
             dx = p2.posicao[0] - p1.posicao[0]
             dy = p2.posicao[1] - p1.posicao[1]
@@ -26,8 +26,7 @@ def colisao_particulas(p1, p2):
             V2_rt = M @ p2.velocidade
             alfa = p1.massa/p2.massa
             beta = p2.massa/p1.massa
-            V1_rt[0] = ((1-alfa)/(1+alfa))*V1_rt + (2/(1+alfa))*V2_rt
-            V2_rt[0] = ((1-beta)/(1+beta))*V2_rt + (2/(1+beta))*V1_rt
+            V1_rt[0], V2_rt[0] = ((1-alfa)/(1+alfa))*V1_rt[0] + (2/(1+alfa))*V2_rt[0], ((1-beta)/(1+beta))*V2_rt[0] + (2/(1+beta))*V1_rt[0]
             p1.velocidade = np.linalg.solve(M, V1_rt)
             p2.velocidade = np.linalg.solve(M, V2_rt)
             return
@@ -50,7 +49,8 @@ class Particula:
             self.velocidade[1] *= -1
 
     def __add__(self, dt):
-        return self.posicao + self.velocidade*dt
+        self.posicao = self.posicao + self.velocidade*dt
+        return
 
     def desenhar(self, superficie):
         pygame.draw.circle(superficie, self.cor, (self.posicao[0], self.posicao[1]), self.raio)
@@ -75,13 +75,13 @@ class Sistema:
         particulas = []
 
         for _ in range(self.numero_de_particulas_1):
-            raio = self.raio_particula_1  # Escolhe um tamanho da lista
-            particula = Particula(np.random.randint(self.raio_particula_1, self.largura - self.raio_particula_1), np.random.randint(self.raio_particula_1, self.altura - self.raio_particula_1), 5, 5, raio, azul)
+            raio_1 = self.raio_particula_1  # Escolhe um tamanho da lista
+            particula = Particula(np.random.randint(self.raio_particula_1, self.largura - self.raio_particula_1), np.random.randint(self.raio_particula_1, self.altura - self.raio_particula_1), 5, 5, raio_1, azul)
             particulas.append(particula)
 
         for _ in range(self.numero_de_particulas_2):
-            raio = self.raio_particula_2  # Escolhe um tamanho da lista
-            particula = Particula(np.random.randint(self.raio_particula_2, self.largura - self.raio_particula_2), np.random.randint(self.raio_particula_2, self.altura - self.raio_particula_2), 5, 5, raio, vermelho)
+            raio_2 = self.raio_particula_2  # Escolhe um tamanho da lista
+            particula = Particula(np.random.randint(self.raio_particula_2, self.largura - self.raio_particula_2), np.random.randint(self.raio_particula_2, self.altura - self.raio_particula_2), 5, 5, raio_2, vermelho)
             particulas.append(particula)
 
 
@@ -105,11 +105,11 @@ class Sistema:
                     colisao_particulas(particulas[i], particulas[j])
 
             pygame.display.update()
-            clock.tick(60/dt)
+            clock.tick(10000/(dt**2))
 
         pygame.quit()
 
-Sistema_particulas = Sistema(100, 360000, 10, 20, 15, 5)
+Sistema_particulas = Sistema(100, 360000, 10, 10, 15, 10)
 
 if __name__ == "__main__":
-    Sistema_particulas.main(0.05)
+    Sistema_particulas.main(0.01)
