@@ -21,7 +21,7 @@ def colisao_particulas(p1, p2):
         if np.dot(velocidade_relativa(p1, p2), distancia(p1, p2)) < 0:
             dx = p2.posicao[0] - p1.posicao[0]
             dy = p2.posicao[1] - p1.posicao[1]
-            M = np.array([[d/dx, d/dy], [-d/dy, d/dx]])
+            M = np.array([[dx/d, dy/d], [-dy/d, dx/d]])
             V1_rt = M @ p1.velocidade
             V2_rt = M @ p2.velocidade
             alfa = p1.massa/p2.massa
@@ -76,7 +76,7 @@ class Sistema:
 
         for _ in range(self.numero_de_particulas_1):
             raio_1 = self.raio_particula_1  # Escolhe um tamanho da lista
-            particula = Particula(np.random.randint(self.raio_particula_1, self.largura - self.raio_particula_1), np.random.randint(self.raio_particula_1, self.altura - self.raio_particula_1), 5, 5, raio_1, azul)
+            particula = Particula(np.random.randint(self.raio_particula_1, self.largura - self.raio_particula_1), np.random.randint(self.raio_particula_1, self.altura - self.raio_particula_1), 10, 10, raio_1, azul)
             particulas.append(particula)
 
         for _ in range(self.numero_de_particulas_2):
