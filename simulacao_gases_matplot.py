@@ -30,7 +30,7 @@ def desenhar_particulas(ax, particle_list):
     particle_number = len(particle_list)
     circle = [None]*particle_number
     for i in range(particle_number):
-        circle[i] = plt.Circle((particle_list[i].posicao[0], particle_list[i].posicao[1]), particle_list[i].raio, c=particle_list[i].cor, lw=1.5, zorder=20)
+        circle[i] = plt.Circle((particle_list[i].posicao[0], particle_list[i].posicao[1]), particle_list[i].raio, color=particle_list[i].cor, lw=1.5, zorder=20)
         ax.add_patch(circle[i])
 
 def escolhe_indice(matriz):
@@ -66,6 +66,8 @@ class Particula:
         return
 
 class Sistema:
+    # U deverá ser grande o suficiente para velocidades médias > 1.
+    # r1 e r2 deverão ser inteiros
     def __init__(self, U, V, N1, N2, r1, r2):
         self.energia_interna = U
         self.volume = V
@@ -83,6 +85,7 @@ class Sistema:
         self.velocidade_2_media_2 = 2*self.energia_interna_2/(self.numero_de_particulas_2*(r2**2))
         self.velocidade_media_1 = np.sqrt(self.velocidade_2_media_1)
         self.velocidade_media_2 = np.sqrt(self.velocidade_2_media_2)
+        self.lista_modulo_velocidades = []
         
         posicoes_ocupadas_1 = np.zeros((self.altura, self.largura))
         posicoes_ocupadas_1[0: self.raio_particula_1, :] = 1
@@ -95,31 +98,39 @@ class Sistema:
         posicoes_ocupadas_2[:, 0:self.raio_particula_2] = 1
         posicoes_ocupadas_2[:, self.largura - self.raio_particula_2: self.altura] = 1
         
-        for _ in range(self.numero_de_particulas_1):
+        velocidades_1 = [np.random.randint(10, 30) for _ in range(self.numero_de_particulas_1)]
+        vel_1_array = np.array(velocidades_1)
+        vel_1_array = (vel_1_array/np.mean(vel_1_array))*self.velocidade_media_1
+        
+        velocidades_2 = [np.random.randint(10, 30) for _ in range(self.numero_de_particulas_2)]
+        vel_2_array = np.array(velocidades_2)
+        vel_2_array = (vel_2_array/np.mean(vel_2_array))*self.velocidade_media_2
+        
+        for ind_vel in range(self.numero_de_particulas_1):
             # escolha da posição inicial
             x_geracao, y_geracao = escolhe_indice(posicoes_ocupadas_1)
             posicoes_ocupadas_1[(x_geracao-2*self.raio_particula_1):(x_geracao+2*self.raio_particula_1), (y_geracao-2*self.raio_particula_1):(y_geracao+2*self.raio_particula_1)] = 1
             posicoes_ocupadas_2[(x_geracao-(self.raio_particula_1 + self.raio_particula_2)):(x_geracao+(self.raio_particula_1 + self.raio_particula_2)), (y_geracao-(self.raio_particula_1 + self.raio_particula_2)):(y_geracao+(self.raio_particula_1 + self.raio_particula_2))] = 1
             
             # escolha da velocidade inicial
-            vx_geracao = np.random.randint(-self.velocidade_media_1, self.velocidade_media_1)
-            vy_geracao = np.sqrt(self.velocidade_2_media_1 - vx_geracao**2)
+            vx_geracao = np.random.randint(-vel_1_array[ind_vel], vel_1_array[ind_vel])
+            vy_geracao = np.sqrt(vel_1_array[ind_vel]**2 - vx_geracao**2)
             
             # criação da partícula
             particula = Particula(x_geracao, y_geracao, vx_geracao, vy_geracao, self.raio_particula_1, 'blue')
             self.particulas.append(particula)
 
-        for _ in range(self.numero_de_particulas_2):
+        for ind_vel in range(self.numero_de_particulas_2):
             # escolha da posição inicial
             x_geracao, y_geracao = escolhe_indice(posicoes_ocupadas_2)
             posicoes_ocupadas_2[(x_geracao-2*self.raio_particula_2):(x_geracao+2*self.raio_particula_2), (y_geracao-2*self.raio_particula_2):(y_geracao+2*self.raio_particula_2)] = 1
             
             # escolha da velocidade inicial
-            vx_geracao = np.random.randint(-self.velocidade_media_2, self.velocidade_media_2)
-            vy_geracao = np.sqrt(self.velocidade_2_media_2 - vx_geracao**2)
+            vx_geracao = np.random.randint(-vel_2_array[ind_vel], vel_2_array[ind_vel])
+            vy_geracao = np.sqrt(vel_2_array[ind_vel]**2 - vx_geracao**2)
             
             # criação da partícula
-            particula = Particula(x_geracao, y_geracao, vx_geracao, vy_geracao, self.raio_particula_1, 'red')
+            particula = Particula(x_geracao, y_geracao, vx_geracao, vy_geracao, self.raio_particula_2, 'red')
             self.particulas.append(particula)
         
     def main(self, dt, frame_period, n):
@@ -144,20 +155,20 @@ class Sistema:
         
         # Graph Particles speed histogram
         vel_mod = [np.linalg.norm(np.copy(self.particulas[i].velocidade)) for i in range(len(self.particulas))]
-        hist.hist(vel_mod, bins= 50, density = True, label = "Dados da Simulação")
+        self.lista_modulo_velocidades += vel_mod
+        hist.hist(self.lista_modulo_velocidades, bins= 50, density = True, label = "Dados da Simulação")
         hist.set_xlabel("Velocidade")
         hist.set_ylabel("Densidade de Frequências")
         
         U_medio = self.energia_interna/len(self.particulas) 
-        k = 1.38064852e-23
-        T = 2*U_medio/(2*k)
         m = (self.particulas[0].massa + self.particulas[-1].massa)/2
-        v = np.linspace(0,72,120)
-        fv = m*np.exp(-m*v**2/(2*T*k))/(2*np.pi*T*k)*2*np.pi*v
+        v = np.arange(0.1, 2*(self.velocidade_media_1 + self.velocidade_media_2))
+        fv = m*np.exp(-m*v**2/(2*U_medio*(2/3)))/(2*np.pi*U_medio*(2/3))*2*np.pi*v
+        hist.set_ylim(0, 1.5*np.max(fv))
         hist.plot(v,fv, label = "Distribuição de Maxwell–Boltzmann") 
         hist.legend(loc ="upper right")
         
-        plt.savefig(f'./GIF - Simulação Gases/Imagem {n}.png', 
+        plt.savefig(f'./GIF - Simulação Gases/Imagem {n}.jpg', 
                 transparent = False,  
                 facecolor = 'white'
                )
