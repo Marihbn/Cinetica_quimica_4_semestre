@@ -95,6 +95,7 @@ class Sistema:
         self.volume = V
         self.numero_de_particulas_1 = N1
         self.numero_de_particulas_2 = N2
+        self.numero_de_particulas_3 = 0
         self.numero_de_particulas = N1 + N2
         self.raio_particula_1 = r1
         self.raio_particula_2 = r2
@@ -108,6 +109,10 @@ class Sistema:
         self.velocidade_media_1 = np.sqrt(self.velocidade_2_media_1)
         self.velocidade_media_2 = np.sqrt(self.velocidade_2_media_2)
         self.lista_modulo_velocidades = []
+        self.concentracoes = {'A': [N1],
+                              'B': [N2],
+                              'C': [0]
+                             }
         
         posicoes_ocupadas_1 = np.zeros((self.altura, self.largura))
         posicoes_ocupadas_1[0: self.raio_particula_1, :] = 1
@@ -156,12 +161,14 @@ class Sistema:
             self.particulas.append(particula)
     
     
-    def main(self, dt, frame_period, n):
+    def main(self, dt, frame_period, n, N):
             
-        fig = plt.figure(figsize=(12, 6))
-        ax = fig.add_subplot(1,2,1)
+        fig = plt.figure(figsize=(12, 12))
+        ax = fig.add_subplot(2,2,1)
 
-        hist = fig.add_subplot(1,2,2)
+        hist = fig.add_subplot(2,2,2)
+        
+        conc = fig.add_subplot(2, 1, 2)
 
         plt.subplots_adjust(bottom=0.2,left=0.15)
 
@@ -190,6 +197,15 @@ class Sistema:
         hist.set_ylim(0, 1.5*np.max(fv))
         hist.plot(v,fv, label = "Distribuição de Maxwell–Boltzmann") 
         hist.legend(loc ="upper right")
+        
+        conc.plot(list(range(n+1)), self.concentracoes['A'], color = 'blue', label = "A")
+        conc.plot(list(range(n+1)), self.concentracoes['B'], color = 'red', label = "B")
+        conc.plot(list(range(n+1)), self.concentracoes['C'], color = 'green', label = "C")
+        conc.set_xlim(0, N)
+        conc.set_ylabel("Número de partículas")
+        conc.set_xlabel("Tempo")
+        conc.legend()
+        
         plt.savefig(f'./GIF - Simulação Gases/Imagem {n}.jpg', 
                 transparent = False,  
                 facecolor = 'white'
@@ -207,8 +223,10 @@ class Sistema:
                 for j in range(i + 1, self.numero_de_particulas):
                     if checar_colisao(self.particulas[i], self.particulas[j]):
                         
-                        if checar_reacao(self.particulas[i], self.particulas[j], 0.5):
-                            print('reagiu')
+                        if checar_reacao(self.particulas[i], self.particulas[j], self.velocidade_media_1*(1/3)):
+                            self.numero_de_particulas_1 -= 1
+                            self.numero_de_particulas_2 -= 1
+                            self.numero_de_particulas_3 += 1
                             particulaC = reacao_quimica(self.particulas[i], self.particulas[j])
                             novo_particulas.append(particulaC)
                             novo_particulas.remove(self.particulas[i])
@@ -217,3 +235,9 @@ class Sistema:
                             colisao_particulas(self.particulas[i], self.particulas[j])
             self.numero_de_particulas = len(novo_particulas)
             self.particulas = novo_particulas
+            
+        self.concentracoes['A'].append(self.numero_de_particulas_1)
+        self.concentracoes['B'].append(self.numero_de_particulas_2)
+        self.concentracoes['C'].append(self.numero_de_particulas_3)
+        
+        
